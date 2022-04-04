@@ -123,3 +123,79 @@ router.delete('/');
 
 module.exports = router;
 ```
+## CREATE CONTROLLERS (for separate logic)
+- create controllers folder
+- create controllers using classes, export controllers to respectively routes and using them in methods 
+###example user controller:
+```
+class UserController {
+  async registration(req, res) {
+
+  }
+
+  async login(req, res) {
+
+  }
+
+  async check(req, res) {
+
+  }
+}
+
+module.exports = new UserController();
+```
+###example user routes using user controller:
+```
+const router = require('express').Router();
+const userController = require('../controllers/userController');
+
+// Роут для регистрации
+router.post('/registration', userController.registration);
+
+// Роут для логина
+router.post('/login', userController.login);
+
+// Роут для проверки авторизации пользователя
+router.get('/auth', userController.check);
+
+module.exports = router;
+```
+### CREATE Middleware and api for error handling
+- error folder > ApiError.js :
+```
+class ApiError extends Error {
+  constructor(status, message) {
+    super();
+    // eslint-disable-next-line no-unused-expressions
+    this.status = status;
+    this.message = message;
+  }
+
+  static badRequest(message) {
+    return new ApiError(404, message);
+  }
+
+  static internal(message) {
+    return new ApiError(500, message);
+  }
+
+  static forbidden(message) {
+    return new ApiError(403, message);
+  }
+}
+
+module.exports = new ApiError();
+```
+- Middleware for errors: 
+```
+const ApiError = require('../error/apiError');
+
+module.exports = function (err, req, res, next) {
+  if (err instanceof ApiError) {
+    return res.status(err.status).json({ message: err.message });
+  }
+  return res.status(500).json({ message: 'Непредвиденная ошибка' });
+};
+
+```
+
